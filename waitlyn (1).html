@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WAITLYN — BEATMAKER</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Boogaloo&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0e0516;--bg2:#160a22;--pink:#ff4fc8;--purple:#a855f7;
+  --violet:#7c3aed;--lavender:#c084fc;--lime:#a3e635;--cyan:#22d3ee;
+  --white:#fdf4ff;--dim:#7c5fa0;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--white);font-family:'Nunito',sans-serif;overflow-x:hidden;cursor:none}
+
+.cursor{position:fixed;width:14px;height:14px;background:var(--pink);border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%);mix-blend-mode:difference;transition:width .15s,height .15s}
+.cursor-ring{position:fixed;width:38px;height:38px;border:2px solid var(--purple);border-radius:50%;pointer-events:none;z-index:9998;transform:translate(-50%,-50%);transition:width .2s,height .2s}
+
+#bg-canvas{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none}
+
+.gfx{position:fixed;inset:0;z-index:1;pointer-events:none;overflow:hidden}
+
+nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.2rem 3rem;display:flex;justify-content:space-between;align-items:center;background:rgba(14,5,22,.88);backdrop-filter:blur(16px);border-bottom:1px solid rgba(168,85,247,.15)}
+.nav-logo{font-family:'Permanent Marker',cursive;font-size:1.8rem;background:linear-gradient(135deg,#ff4fc8,#a855f7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;text-decoration:none;filter:drop-shadow(0 0 12px rgba(255,79,200,.5))}
+.nav-links{display:flex;gap:2rem;list-style:none}
+.nav-links a{font-family:'Boogaloo',cursive;font-size:.95rem;letter-spacing:.08em;color:var(--lavender);text-decoration:none;text-transform:uppercase;transition:color .2s,text-shadow .2s;cursor:none}
+.nav-links a:hover{color:var(--pink);text-shadow:0 0 10px rgba(255,79,200,.6)}
+
+#hero{height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:2rem;position:relative;z-index:2;overflow:hidden}
+.hero-tag{font-family:'Permanent Marker',cursive;font-size:.85rem;letter-spacing:.15em;color:var(--lime);text-shadow:0 0 15px rgba(163,230,53,.6);margin-bottom:1.5rem;opacity:0;animation:fadeUp .8s .2s forwards}
+.hero-name{font-family:'Permanent Marker',cursive;font-size:clamp(5rem,18vw,15rem);line-height:.85;background:linear-gradient(135deg,#fdf4ff 0%,#ff4fc8 35%,#a855f7 65%,#22d3ee 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 40px rgba(168,85,247,.5)) drop-shadow(0 0 80px rgba(255,79,200,.3));opacity:0;animation:fadeUp 1s .4s forwards;position:relative;z-index:3}
+.hero-sub{font-family:'Boogaloo',cursive;font-size:clamp(.8rem,2vw,1.1rem);letter-spacing:.3em;color:var(--lavender);text-transform:uppercase;margin-top:1.5rem;opacity:0;animation:fadeUp .8s .7s forwards}
+.hero-cta{margin-top:2.5rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;opacity:0;animation:fadeUp .8s .9s forwards}
+.btn{font-family:'Boogaloo',cursive;font-size:1rem;letter-spacing:.12em;text-transform:uppercase;padding:.8rem 2rem;text-decoration:none;cursor:none;border-radius:8px;transition:transform .2s,box-shadow .2s;border:none;display:inline-block}
+.btn:hover{transform:translateY(-3px) scale(1.03)}
+.btn-primary{background:linear-gradient(135deg,var(--pink),var(--violet));color:#fff;box-shadow:0 4px 30px rgba(168,85,247,.4)}
+.btn-primary:hover{box-shadow:0 8px 40px rgba(255,79,200,.6)}
+.btn-outline{background:transparent;color:var(--lavender);border:2px solid var(--purple)}
+.btn-outline:hover{border-color:var(--pink);color:var(--pink);box-shadow:0 0 20px rgba(255,79,200,.3)}
+.hero-scroll{position:absolute;bottom:2rem;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:.5rem;font-family:'Boogaloo',cursive;font-size:.7rem;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;opacity:0;animation:fadeIn 1s 1.4s forwards}
+.scroll-line{width:1px;height:44px;background:linear-gradient(to bottom,var(--pink),transparent);animation:scrollPulse 2s infinite}
+
+.marquee-wrap{overflow:hidden;padding:1.2rem 0;border-top:1px solid rgba(168,85,247,.2);border-bottom:1px solid rgba(168,85,247,.2);position:relative;z-index:2;background:rgba(168,85,247,.04)}
+.marquee-track{display:flex;gap:3rem;animation:marquee 22s linear infinite;white-space:nowrap}
+.marquee-item{font-family:'Permanent Marker',cursive;font-size:1rem;letter-spacing:.2em;color:rgba(255,255,255,.07);flex-shrink:0}
+.marquee-item span{color:var(--pink)}
+
+#about{padding:7rem 2rem;position:relative;z-index:2;max-width:1200px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
+.about-tag{font-family:'Permanent Marker',cursive;font-size:.8rem;color:var(--lime);letter-spacing:.15em;margin-bottom:.8rem;text-shadow:0 0 10px rgba(163,230,53,.5)}
+.about-h{font-family:'Permanent Marker',cursive;font-size:clamp(2.5rem,5vw,4rem);line-height:.95;background:linear-gradient(180deg,#fdf4ff,rgba(192,132,252,.5));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:1.5rem}
+.about-p{font-size:.9rem;line-height:2;color:rgba(253,244,255,.55);margin-bottom:1rem}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:.8rem;margin-top:1.5rem}
+.stat{padding:1.2rem .8rem;text-align:center;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:12px;transition:border-color .3s,background .3s,transform .2s}
+.stat:hover{border-color:var(--pink);background:rgba(255,79,200,.07);transform:translateY(-2px)}
+.stat-n{font-family:'Permanent Marker',cursive;font-size:2rem;color:var(--pink);display:block}
+.stat-l{font-size:.6rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase}
+
+.sphere-wrap{display:flex;justify-content:center;align-items:center}
+.sphere{width:220px;height:220px;background:radial-gradient(circle at 38% 32%,#f9a8ff,#a855f7 45%,#3b0764 80%);border-radius:50%;box-shadow:0 0 60px rgba(168,85,247,.5),0 0 120px rgba(255,79,200,.2),inset -20px -20px 40px rgba(0,0,0,.4),inset 10px 10px 30px rgba(255,200,255,.2);position:relative;animation:floatSphere 4s ease-in-out infinite;display:flex;align-items:center;justify-content:center}
+.sphere-text{font-family:'Permanent Marker',cursive;font-size:2.2rem;color:rgba(255,255,255,.9);text-shadow:0 2px 10px rgba(0,0,0,.5)}
+.sphere::after{content:'';position:absolute;top:14%;left:20%;width:35%;height:18%;background:rgba(255,255,255,.25);border-radius:50%;transform:rotate(-25deg);filter:blur(4px)}
+
+#beats{padding:6rem 2rem;max-width:1200px;margin:0 auto;position:relative;z-index:2}
+.section-hd{margin-bottom:3rem}
+.section-tag{font-family:'Permanent Marker',cursive;font-size:.8rem;color:var(--lime);letter-spacing:.15em;margin-bottom:.5rem;text-shadow:0 0 10px rgba(163,230,53,.5)}
+.section-title{font-family:'Permanent Marker',cursive;font-size:clamp(2.5rem,6vw,5rem);line-height:.85;background:linear-gradient(135deg,#fdf4ff,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.beats-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:1.5rem}
+
+/* Beat card */
+.beat-card{background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:16px;overflow:hidden;transition:transform .3s,border-color .3s,box-shadow .3s;position:relative}
+.beat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--pink),var(--purple),transparent);opacity:0;transition:opacity .3s;z-index:1}
+.beat-card:hover{transform:translateY(-5px);border-color:rgba(255,79,200,.5);box-shadow:0 20px 60px rgba(168,85,247,.15),0 0 0 1px rgba(255,79,200,.15)}
+.beat-card:hover::before{opacity:1}
+
+/* YouTube lazy embed */
+.yt-wrap{position:relative;width:100%;padding-top:56.25%;background:#0a0510;overflow:hidden;cursor:pointer}
+.yt-thumb{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .3s,opacity .3s}
+.yt-wrap:hover .yt-thumb{transform:scale(1.04);opacity:.85}
+.yt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
+.yt-play-btn{width:68px;height:48px;background:rgba(255,79,200,.9);border-radius:12px;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .2s;box-shadow:0 4px 30px rgba(255,79,200,.5)}
+.yt-wrap:hover .yt-play-btn{background:var(--pink);transform:scale(1.1)}
+.yt-play-btn svg{width:24px;height:24px;fill:#fff;margin-left:4px}
+.yt-iframe{position:absolute;inset:0;width:100%;height:100%;border:none}
+
+.beat-info{padding:1.2rem 1.4rem}
+.beat-meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:.5rem}
+.beat-num{font-family:'Permanent Marker',cursive;font-size:.85rem;color:var(--pink)}
+.beat-tags{display:flex;gap:.4rem}
+.btag{font-family:'Boogaloo',cursive;font-size:.65rem;letter-spacing:.1em;color:var(--lavender);text-transform:uppercase;padding:.15rem .5rem;border:1px solid rgba(192,132,252,.25);border-radius:4px}
+.beat-title{font-family:'Permanent Marker',cursive;font-size:1.2rem;color:var(--white);margin-bottom:.3rem}
+.beat-bpm{font-family:'Boogaloo',cursive;font-size:.75rem;letter-spacing:.1em;color:var(--cyan);text-transform:uppercase}
+.waveform{display:flex;align-items:center;gap:2px;height:18px;margin-top:.7rem}
+.wbar{width:3px;background:rgba(168,85,247,.35);border-radius:2px;animation:wavePulse 1.5s ease-in-out infinite}
+.beat-card:hover .wbar{background:rgba(255,79,200,.6)}
+
+#youtube{padding:6rem 2rem;text-align:center;position:relative;z-index:2;overflow:hidden}
+#youtube::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:700px;height:700px;background:radial-gradient(circle,rgba(168,85,247,.07) 0%,transparent 65%);pointer-events:none}
+.yt-big{font-family:'Permanent Marker',cursive;font-size:clamp(3rem,10vw,8rem);background:linear-gradient(135deg,#ff4fc8,#a855f7,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;filter:drop-shadow(0 0 30px rgba(255,79,200,.4));margin:1.5rem 0;line-height:1}
+.yt-desc{font-size:.9rem;color:rgba(253,244,255,.5);line-height:2;max-width:500px;margin:0 auto 2rem}
+
+#contact{padding:6rem 2rem;max-width:1000px;margin:0 auto;text-align:center;position:relative;z-index:2}
+.contact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-top:3rem}
+.contact-item{padding:2rem 1.5rem;background:rgba(168,85,247,.05);border:1px solid rgba(168,85,247,.2);border-radius:14px;text-decoration:none;color:var(--white);transition:border-color .3s,transform .3s,background .3s,box-shadow .3s}
+.contact-item:hover{border-color:var(--pink);transform:translateY(-4px);background:rgba(255,79,200,.06);box-shadow:0 10px 40px rgba(255,79,200,.12);cursor:none}
+.contact-icon{font-size:1.6rem;margin-bottom:.8rem}
+.contact-name{font-family:'Permanent Marker',cursive;font-size:1.2rem}
+.contact-sub{font-family:'Boogaloo',cursive;font-size:.7rem;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;margin-top:.3rem}
+
+footer{padding:2.5rem 2rem;text-align:center;border-top:1px solid rgba(168,85,247,.1);position:relative;z-index:2;font-family:'Boogaloo',cursive;font-size:.7rem;letter-spacing:.2em;color:var(--dim);text-transform:uppercase}
+footer strong{color:var(--pink)}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes scrollPulse{0%,100%{opacity:.3}50%{opacity:1}}
+@keyframes wavePulse{0%,100%{transform:scaleY(.35);opacity:.4}50%{transform:scaleY(1);opacity:1}}
+@keyframes marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes floatSphere{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+@keyframes grafDrift{0%{opacity:.06}50%{opacity:.13}100%{opacity:.06}}
+
+.wbar:nth-child(1){height:6px;animation-delay:0s}.wbar:nth-child(2){height:12px;animation-delay:.1s}
+.wbar:nth-child(3){height:8px;animation-delay:.2s}.wbar:nth-child(4){height:16px;animation-delay:.05s}
+.wbar:nth-child(5){height:10px;animation-delay:.25s}.wbar:nth-child(6){height:14px;animation-delay:.15s}
+.wbar:nth-child(7){height:7px;animation-delay:.3s}.wbar:nth-child(8){height:18px;animation-delay:.1s}
+.wbar:nth-child(9){height:11px;animation-delay:.2s}.wbar:nth-child(10){height:13px;animation-delay:0s}
+.wbar:nth-child(11){height:9px;animation-delay:.35s}.wbar:nth-child(12){height:15px;animation-delay:.08s}
+
+@media(max-width:768px){
+  #about{grid-template-columns:1fr;gap:2.5rem;padding:4rem 1.5rem}
+  .sphere-wrap{display:none}
+  .beats-grid{grid-template-columns:1fr}
+  nav{padding:1rem 1.5rem}
+  .nav-links{display:none}
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursor-ring"></div>
+<canvas id="bg-canvas"></canvas>
+
+<!-- GRAFFITI BG -->
+<div class="gfx">
+<svg width="100%" height="100%" viewBox="0 0 1400 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+  <ellipse cx="80" cy="140" rx="90" ry="55" fill="rgba(255,79,200,0.06)" style="animation:grafDrift 6s ease-in-out infinite"/>
+  <ellipse cx="1320" cy="200" rx="110" ry="70" fill="rgba(168,85,247,0.07)" style="animation:grafDrift 7s 1s ease-in-out infinite"/>
+  <ellipse cx="200" cy="750" rx="80" ry="50" fill="rgba(34,211,238,0.05)" style="animation:grafDrift 8s 2s ease-in-out infinite"/>
+  <ellipse cx="1200" cy="700" rx="100" ry="60" fill="rgba(255,79,200,0.06)" style="animation:grafDrift 5s .5s ease-in-out infinite"/>
+  <text x="30" y="280" font-family="serif" font-size="72" fill="rgba(255,79,200,0.05)" transform="rotate(-12,30,280)" style="font-style:italic;font-weight:900">BEATS</text>
+  <text x="1050" y="420" font-family="serif" font-size="60" fill="rgba(168,85,247,0.05)" transform="rotate(8,1050,420)" style="font-style:italic;font-weight:900">TRAP</text>
+  <text x="50" y="580" font-family="serif" font-size="50" fill="rgba(34,211,238,0.04)" transform="rotate(-6,50,580)" style="font-style:italic;font-weight:900">DRIP</text>
+  <text x="1100" y="800" font-family="serif" font-size="55" fill="rgba(255,79,200,0.04)" transform="rotate(5,1100,800)" style="font-style:italic;font-weight:900">FIRE</text>
+  <path d="M120 0 Q125 30 120 60 Q115 80 120 110 Q125 130 120 160" stroke="rgba(255,79,200,0.08)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  <circle cx="120" cy="168" r="8" fill="rgba(255,79,200,0.1)"/>
+  <circle cx="350" cy="90" r="2" fill="rgba(255,79,200,0.2)"/>
+  <circle cx="890" cy="130" r="1.5" fill="rgba(192,132,252,0.2)"/>
+  <circle cx="1100" cy="70" r="2.5" fill="rgba(34,211,238,0.15)"/>
+  <circle cx="1350" cy="500" r="2" fill="rgba(163,230,53,0.2)"/>
+</svg>
+</div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">WAITLYN</a>
+  <ul class="nav-links">
+    <li><a href="#about">About</a></li>
+    <li><a href="#beats">Beats</a></li>
+    <li><a href="#youtube">YouTube</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-tag">// Beat Producer &amp; Sound Designer</div>
+  <h1 class="hero-name">WAITLYN</h1>
+  <p class="hero-sub">Trap · Drill · Dark Orchestral · Custom Beats</p>
+  <div class="hero-cta">
+    <a href="#beats" class="btn btn-primary">Listen Now</a>
+    <a href="https://www.youtube.com/@Waitlyn" target="_blank" class="btn btn-outline">YouTube Channel</a>
+  </div>
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>Scroll</span>
+  </div>
+</section>
+
+<!-- MARQUEE -->
+<div class="marquee-wrap">
+  <div class="marquee-track">
+    <span class="marquee-item">WAITLYN <span>✦</span></span>
+    <span class="marquee-item">BEAT PRODUCER <span>✦</span></span>
+    <span class="marquee-item">TRAP <span>✦</span></span>
+    <span class="marquee-item">DRILL <span>✦</span></span>
+    <span class="marquee-item">DARK ORCHESTRAL <span>✦</span></span>
+    <span class="marquee-item">BUBBLEGUM VIBES <span>✦</span></span>
+    <span class="marquee-item">WAITLYN <span>✦</span></span>
+    <span class="marquee-item">BEAT PRODUCER <span>✦</span></span>
+    <span class="marquee-item">TRAP <span>✦</span></span>
+    <span class="marquee-item">DRILL <span>✦</span></span>
+    <span class="marquee-item">DARK ORCHESTRAL <span>✦</span></span>
+    <span class="marquee-item">BUBBLEGUM VIBES <span>✦</span></span>
+  </div>
+</div>
+
+<!-- ABOUT -->
+<section id="about">
+  <div>
+    <div class="about-tag">// Who I Am</div>
+    <h2 class="about-h">THE<br>SOUND<br>ARCHITECT</h2>
+    <p class="about-p">Меня зовут Waitlyn — продюсер и битмейкер. Создаю атмосферные биты на стыке тёмного оркестра, трэпа и дрилла. Каждый бит — это отдельная история.</p>
+    <p class="about-p">Работаю с артистами по всему миру. Если нужен уникальный звук — ты нашёл нужного человека.</p>
+    <div class="stats">
+      <div class="stat"><span class="stat-n">100+</span><span class="stat-l">Beats</span></div>
+      <div class="stat"><span class="stat-n">∞</span><span class="stat-l">Vibes</span></div>
+      <div class="stat"><span class="stat-n">24/7</span><span class="stat-l">Studio</span></div>
+    </div>
+  </div>
+  <div class="sphere-wrap">
+    <div style="position:relative">
+      <div class="sphere"><span class="sphere-text">W</span></div>
+      <div style="position:absolute;inset:-50px;background:radial-gradient(circle,rgba(168,85,247,.12) 0%,transparent 70%);pointer-events:none;border-radius:50%"></div>
+    </div>
+  </div>
+</section>
+
+<!-- BEATS -->
+<section id="beats">
+  <div class="section-hd">
+    <div class="section-tag">// My Work</div>
+    <h2 class="section-title">BEATS &amp;<br>TRACKS</h2>
+  </div>
+  <div class="beats-grid">
+
+    <!-- BEAT 1 -->
+    <div class="beat-card">
+      <div class="yt-wrap" data-vid="2oL6CqSRy4s">
+        <img class="yt-thumb" src="https://i.ytimg.com/vi/2oL6CqSRy4s/hqdefault.jpg" alt="Beat 1" loading="lazy">
+        <div class="yt-play">
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+        </div>
+      </div>
+      <div class="beat-info">
+        <div class="beat-meta"><span class="beat-num">#001</span><div class="beat-tags"><span class="btag">Trap</span><span class="btag">Dark</span></div></div>
+        <div class="beat-title">BEAT 001</div>
+        <div class="beat-bpm">Waitlyn ✦ Official Beat</div>
+        <div class="waveform"><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div></div>
+      </div>
+    </div>
+
+    <!-- BEAT 2 -->
+    <div class="beat-card">
+      <div class="yt-wrap" data-vid="OE9UC-yNcsY">
+        <img class="yt-thumb" src="https://i.ytimg.com/vi/OE9UC-yNcsY/hqdefault.jpg" alt="Beat 2" loading="lazy">
+        <div class="yt-play">
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+        </div>
+      </div>
+      <div class="beat-info">
+        <div class="beat-meta"><span class="beat-num">#002</span><div class="beat-tags"><span class="btag">Drill</span><span class="btag">Hard</span></div></div>
+        <div class="beat-title">BEAT 002</div>
+        <div class="beat-bpm">Waitlyn ✦ Official Beat</div>
+        <div class="waveform"><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div></div>
+      </div>
+    </div>
+
+    <!-- BEAT 3 -->
+    <div class="beat-card">
+      <div class="yt-wrap" data-vid="8UMf3EBD-b0">
+        <img class="yt-thumb" src="https://i.ytimg.com/vi/8UMf3EBD-b0/hqdefault.jpg" alt="Beat 3" loading="lazy">
+        <div class="yt-play">
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+        </div>
+      </div>
+      <div class="beat-info">
+        <div class="beat-meta"><span class="beat-num">#003</span><div class="beat-tags"><span class="btag">Melodic</span><span class="btag">Vibes</span></div></div>
+        <div class="beat-title">BEAT 003</div>
+        <div class="beat-bpm">Waitlyn ✦ Official Beat</div>
+        <div class="waveform"><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div></div>
+      </div>
+    </div>
+
+    <!-- BEAT 4 -->
+    <div class="beat-card">
+      <div class="yt-wrap" data-vid="69PlusMwzRg">
+        <img class="yt-thumb" src="https://i.ytimg.com/vi/69PlusMwzRg/hqdefault.jpg" alt="Beat 4" loading="lazy">
+        <div class="yt-play">
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+        </div>
+      </div>
+      <div class="beat-info">
+        <div class="beat-meta"><span class="beat-num">#004</span><div class="beat-tags"><span class="btag">Dark</span><span class="btag">808</span></div></div>
+        <div class="beat-title">BEAT 004</div>
+        <div class="beat-bpm">Waitlyn ✦ Official Beat</div>
+        <div class="waveform"><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div></div>
+      </div>
+    </div>
+
+    <!-- BEAT 5 -->
+    <div class="beat-card">
+      <div class="yt-wrap" data-vid="JZgq-ykULwE">
+        <img class="yt-thumb" src="https://i.ytimg.com/vi/JZgq-ykULwE/hqdefault.jpg" alt="Beat 5" loading="lazy">
+        <div class="yt-play">
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+        </div>
+      </div>
+      <div class="beat-info">
+        <div class="beat-meta"><span class="beat-num">#005</span><div class="beat-tags"><span class="btag">Orchestral</span><span class="btag">Epic</span></div></div>
+        <div class="beat-title">BEAT 005</div>
+        <div class="beat-bpm">Waitlyn ✦ Official Beat</div>
+        <div class="waveform"><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div></div>
+      </div>
+    </div>
+
+    <!-- BEAT 6 -->
+    <div class="beat-card">
+      <div class="yt-wrap" data-vid="lBfynHaqisk">
+        <img class="yt-thumb" src="https://i.ytimg.com/vi/lBfynHaqisk/hqdefault.jpg" alt="Beat 6" loading="lazy">
+        <div class="yt-play">
+          <div class="yt-play-btn"><svg viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg></div>
+        </div>
+      </div>
+      <div class="beat-info">
+        <div class="beat-meta"><span class="beat-num">#006</span><div class="beat-tags"><span class="btag">Trap</span><span class="btag">Smooth</span></div></div>
+        <div class="beat-title">BEAT 006</div>
+        <div class="beat-bpm">Waitlyn ✦ Official Beat</div>
+        <div class="waveform"><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div><div class="wbar"></div></div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- YOUTUBE -->
+<section id="youtube">
+  <div style="position:relative;z-index:2">
+    <div class="section-tag">// Subscribe</div>
+    <div class="yt-big">YOUTUBE</div>
+    <p class="yt-desc">Все биты, новые дропы и коллабы — на YouTube канале. Подписывайся, чтобы не пропустить.</p>
+    <a href="https://www.youtube.com/@Waitlyn" target="_blank" class="btn btn-primary">@Waitlyn →</a>
+  </div>
+</section>
+
+<!-- MARQUEE 2 -->
+<div class="marquee-wrap">
+  <div class="marquee-track" style="animation-direction:reverse">
+    <span class="marquee-item">BEATS FOR SALE <span>★</span></span>
+    <span class="marquee-item">EXCLUSIVE LICENSE <span>★</span></span>
+    <span class="marquee-item">WAITLYN <span>★</span></span>
+    <span class="marquee-item">CUSTOM ORDERS <span>★</span></span>
+    <span class="marquee-item">DM FOR COLLAB <span>★</span></span>
+    <span class="marquee-item">BEATS FOR SALE <span>★</span></span>
+    <span class="marquee-item">EXCLUSIVE LICENSE <span>★</span></span>
+    <span class="marquee-item">WAITLYN <span>★</span></span>
+    <span class="marquee-item">CUSTOM ORDERS <span>★</span></span>
+    <span class="marquee-item">DM FOR COLLAB <span>★</span></span>
+  </div>
+</div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-tag">// Get In Touch</div>
+  <h2 class="section-title" style="text-align:center">CONTACT</h2>
+  <p style="font-size:.85rem;color:var(--dim);margin-top:1rem;line-height:2;font-family:'Boogaloo',cursive">Хочешь купить бит или сделать заказ? Пиши напрямую.</p>
+  <div class="contact-grid">
+    <a href="https://www.youtube.com/@Waitlyn" target="_blank" class="contact-item">
+      <div class="contact-icon">▶</div>
+      <div class="contact-name">YouTube</div>
+      <div class="contact-sub">@Waitlyn</div>
+    </a>
+    <a href="#" class="contact-item" id="tg-link">
+      <div class="contact-icon">✈</div>
+      <div class="contact-name">Telegram</div>
+      <div class="contact-sub">Добавь свой TG</div>
+    </a>
+    <a href="#" class="contact-item" id="ig-link">
+      <div class="contact-icon">◈</div>
+      <div class="contact-name">Instagram</div>
+      <div class="contact-sub">Добавь свой IG</div>
+    </a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2025 <strong>WAITLYN</strong> · All Rights Reserved · Beat Producer</p>
+</footer>
+
+<script>
+/* CURSOR */
+const cur=document.getElementById('cursor'),ring=document.getElementById('cursor-ring');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY});
+(function animC(){cur.style.left=mx+'px';cur.style.top=my+'px';rx+=(mx-rx)*.12;ry+=(my-ry)*.12;ring.style.left=rx+'px';ring.style.top=ry+'px';requestAnimationFrame(animC)})();
+document.querySelectorAll('a,button,.beat-card,.stat,.contact-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{cur.style.width='20px';cur.style.height='20px';ring.style.width='58px';ring.style.height='58px'});
+  el.addEventListener('mouseleave',()=>{cur.style.width='14px';cur.style.height='14px';ring.style.width='38px';ring.style.height='38px'});
+});
+
+/* YOUTUBE LAZY LOAD — click thumbnail → load real iframe */
+document.querySelectorAll('.yt-wrap').forEach(wrap=>{
+  wrap.addEventListener('click',function(){
+    const vid=this.dataset.vid;
+    const iframe=document.createElement('iframe');
+    iframe.className='yt-iframe';
+    iframe.src='https://www.youtube.com/embed/'+vid+'?autoplay=1&rel=0&modestbranding=1';
+    iframe.allow='accelerometer;autoplay;clipboard-write;encrypted-media;gyroscope;picture-in-picture';
+    iframe.allowFullscreen=true;
+    this.innerHTML='';
+    this.appendChild(iframe);
+    this.style.cursor='default';
+  });
+});
+
+/* PARTICLE BG */
+const canvas=document.getElementById('bg-canvas'),ctx=canvas.getContext('2d');
+let W,H;
+function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight}
+resize();window.addEventListener('resize',resize);
+const COLS=['#ff4fc8','#a855f7','#7c3aed','#22d3ee','#c084fc'];
+class P{constructor(){this.reset()}reset(){this.x=Math.random()*W;this.y=Math.random()*H;this.sz=Math.random()*1.8+.3;this.vx=(Math.random()-.5)*.25;this.vy=(Math.random()-.5)*.25;this.a=Math.random()*.4+.05;this.c=COLS[Math.floor(Math.random()*COLS.length)]}tick(){this.x+=this.vx;this.y+=this.vy;if(this.x<0||this.x>W||this.y<0||this.y>H)this.reset()}draw(){ctx.globalAlpha=this.a;ctx.fillStyle=this.c;ctx.beginPath();ctx.arc(this.x,this.y,this.sz,0,Math.PI*2);ctx.fill()}}
+const pts=[];for(let i=0;i<150;i++)pts.push(new P());
+function drawGrid(){ctx.globalAlpha=.025;ctx.strokeStyle='#a855f7';ctx.lineWidth=.5;for(let x=0;x<W;x+=90){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}for(let y=0;y<H;y+=90){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}}
+(function loop(){ctx.clearRect(0,0,W,H);drawGrid();pts.forEach(p=>{p.tick();p.draw()});ctx.lineWidth=.5;for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y,d=Math.sqrt(dx*dx+dy*dy);if(d<90){ctx.globalAlpha=.05*(1-d/90);ctx.strokeStyle=pts[i].c;ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke()}}requestAnimationFrame(loop)})();
+
+/* SCROLL REVEAL */
+const obs=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting){x.target.style.opacity='1';x.target.style.transform='translateY(0)'}}),{threshold:.1});
+document.querySelectorAll('.beat-card,.stat,.contact-item').forEach(el=>{el.style.opacity='0';el.style.transform='translateY(28px)';el.style.transition='opacity .6s ease,transform .6s ease';obs.observe(el)});
+</script>
+</body>
+</html>
